@@ -57,7 +57,7 @@ public class ReportActivity extends RecoActivity implements RECORangingListener,
         Date now = new Date();
         _time.setText(now.toString());
         isAlreadySet = false;
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new ProgressDialog(this, R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage(getResources().getString(R.string.wait_message));
         progressDialog.show();

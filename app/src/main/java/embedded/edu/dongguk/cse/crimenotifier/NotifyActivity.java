@@ -20,7 +20,7 @@ import android.widget.ToggleButton;
 
 import com.perples.recosdk.RECOBeaconRegion;
 
-public class NotifyActivity extends Activity {
+public class NotifyActivity extends Activity implements View.OnClickListener {
     //This is a default proximity uuid of the RECO
 
     private int mMajor1 = 501;
@@ -46,27 +46,21 @@ public class NotifyActivity extends Activity {
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
 
-    private View mLayout;
+    private Button _report, _listing, _sns;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_notify);
-        mLayout = findViewById(R.id.mainLayout);
 
-        View includedLayout = (View) findViewById(R.id.reco_settings_values );
-        TextView mRecoOnlyText = (TextView) includedLayout.findViewById(R.id.recoRecoonlySetting);
-        if( SCAN_RECO_ONLY ) mRecoOnlyText.setText(R.string.settings_result_true);
-        else mRecoOnlyText.setText(R.string.settings_result_false);
+        _report = (Button)findViewById(R.id.notify_report);
+        _listing = (Button)findViewById(R.id.notify_list);
+        _sns = (Button)findViewById(R.id.notify_sns);
+        _report.setOnClickListener(this);
+        _listing.setOnClickListener(this);
+        _sns.setOnClickListener(this);
 
-        TextView mDiscontinuousText = (TextView) includedLayout.findViewById(R.id.recoDiscontinouosSetting);
-        if( DISCONTINUOUS_SCAN ) mDiscontinuousText.setText(R.string.settings_result_true);
-        else mDiscontinuousText.setText(R.string.settings_result_false);
-
-        TextView mBackgroundRangingTimeoutText = (TextView) includedLayout.findViewById(R.id.recoBackgroundtimeoutSetting);
-        if( ENABLE_BACKGROUND_RANGING_TIMEOUT ) mBackgroundRangingTimeoutText.setText(R.string.settings_result_true);
-        else mBackgroundRangingTimeoutText.setText(R.string.settings_result_false);
 
         mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
@@ -85,9 +79,6 @@ public class NotifyActivity extends Activity {
             }
         }
 
-        RECOBeaconRegion mRecoRegion1 = new RECOBeaconRegion(RECO_UUID, mMajor1, mMinor1, "비콘 1호");
-        RECOBeaconRegion mRecoRegion2 = new RECOBeaconRegion(RECO_UUID, mMajor2, mMinor2, "비콘 2호");
-        RECOBeaconRegion mRecoRegion3 = new RECOBeaconRegion(RECO_UUID, mMajor3, mMinor3, "비콘 3호");
 
 
 
@@ -105,35 +96,9 @@ public class NotifyActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch(requestCode) {
-            case REQUEST_LOCATION : {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Snackbar.make(mLayout, R.string.location_permission_granted, Snackbar.LENGTH_LONG).show();
-                } else {
-                    Snackbar.make(mLayout, R.string.location_permission_not_granted, Snackbar.LENGTH_LONG).show();
-                }
-            }
-            default :
-                break;
-        }
-
-
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
 
-        if(this.isBackgroundMonitoringServiceRunning(this)) {
-            ToggleButton toggle = (ToggleButton)findViewById(R.id.backgroundMonitoringToggleButton);
-            toggle.setChecked(true);
-        }
-
-        if(this.isBackgroundRangingServiceRunning(this)) {
-            ToggleButton toggle = (ToggleButton)findViewById(R.id.backgroundRangingToggleButton);
-            toggle.setChecked(true);
-        }
     }
 
     @Override
@@ -147,47 +112,21 @@ public class NotifyActivity extends Activity {
             return;
         }
 
-        Snackbar.make(mLayout, R.string.location_permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.ok, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ActivityCompat.requestPermissions(NotifyActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
-                    }
-                })
-                .show();
     }
 
-    public void onMonitoringToggleButtonClicked(View v) {
-        ToggleButton toggle = (ToggleButton)v;
-        if(toggle.isChecked()) {
-            Log.i("MainActivity", "onMonitoringToggleButtonClicked off to on");
-            Intent intent = new Intent(this, RecoBackgroundMonitoringService.class);
-            startService(intent);
-        } else {
-            Log.i("MainActivity", "onMonitoringToggleButtonClicked on to off");
-            stopService(new Intent(this, RecoBackgroundMonitoringService.class));
-        }
-    }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.notify_report:
+                startActivity(new Intent(this, ReportActivity.class));
+                break;
+            case R.id.notify_list:
+                startActivity(new Intent(this,RecoRangingActivity.class));
+                break;
+            case R.id.notify_sns:
+                startActivity(new Intent(this, CollectedActivity.class));
+                break;
 
-    public void onRangingToggleButtonClicked(View v) {
-        ToggleButton toggle = (ToggleButton)v;
-        if(toggle.isChecked()) {
-            Log.i("MainActivity", "onRangingToggleButtonClicked off to on");
-            startService(new Intent(this, RecoBackgroundRangingService.class));
-        } else {
-            Log.i("MainActivity", "onRangingToggleButtonClicked on to off");
-            stopService(new Intent(this, RecoBackgroundRangingService.class));
-        }
-    }
-
-    public void onButtonClicked(View v) {
-        Button btn = (Button)v;
-        if(btn.getId() == R.id.monitoringButton) {
-            final Intent intent = new Intent(this,RecoRangingActivity.class);
-            startActivity(intent);
-        } else {
-            final Intent intent = new Intent(this, ReportActivity.class);
-            startActivity(intent);
         }
     }
 
